@@ -1,0 +1,20 @@
+# Concept: Mukesh Kesharwani
+# Contact: mukesh.kesharwani@adobe.com
+#
+# Required TrueNAS ix-app port publishing for headless-chrome.
+# Copy this "ports" block into your iX App user_config.yaml if ports: [].
+
+"ports":
+  - "bind_mode": "published"
+    "container_port": 6080
+    "host_ips": []
+    "port_number": 6080
+    "protocol": "tcp"
+
+# Optional portal (TrueNAS Apps UI shortcut):
+"portals":
+  - "name": "Web UI"
+    "path": "/"
+    "port": 6080
+    "scheme": "http"
+    "use_node_ip": true

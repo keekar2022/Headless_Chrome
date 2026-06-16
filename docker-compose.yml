@@ -1,0 +1,20 @@
+# Concept: Mukesh Kesharwani
+# Contact: mukesh.kesharwani@adobe.com
+#
+# Reference docker-compose for desktop Chrome (noVNC on 6080).
+# Use this for generic Docker hosts. For TrueNAS Scale, see docs/TRUENAS_DEPLOYMENT.md
+
+services:
+  headless-chrome:
+    image: keekar/headless-chrome:latest
+    container_name: headless-chrome
+    restart: unless-stopped
+    shm_size: 2g
+    ports:
+      - "6080:6080"
+    environment:
+      CHROME_MODE: desktop
+      NOVNC_PORT: "6080"
+      NOVNC_LISTEN: "0.0.0.0"
+      START_URL: about:blank
+      # VNC_PASSWORD: change-me
