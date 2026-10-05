@@ -1,8 +1,17 @@
 # Concept: Mukesh Kesharwani
 # Contact: mukesh.kesharwani@adobe.com
 #
-# Required TrueNAS ix-app port publishing for headless-chrome.
-# Copy this "ports" block into your iX App user_config.yaml if ports: [].
+# Required TrueNAS ix-app settings for headless-chrome.
+# Copy these blocks into your iX App user_config.yaml.
+
+# DNS (LAN only — matches deploy/defaults.env; avoids public DNS popups/ads):
+"dns_config":
+  "nameservers":
+    - "192.168.1.200"
+  "options":
+    - "name": "ndots"
+      "value": "2"
+  "searches": []
 
 "ports":
   - "bind_mode": "published"

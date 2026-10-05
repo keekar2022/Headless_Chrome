@@ -1,0 +1,40 @@
+# Concept: Mukesh Kesharwani
+# Contact: mukesh.kesharwani@adobe.com
+#
+# Reference iX App user_config.yaml for headless-chrome on TrueNAS Scale.
+# Critical: use ONLY 192.168.1.200 and clear search domains (see docs/TRUENAS_DEPLOYMENT.md).
+# Copy into /mnt/.ix-apps/app_configs/<app>/versions/<version>/user_config.yaml
+# then: midclt call app.redeploy <app>
+
+"TZ": "Australia/Sydney"
+"dns_config":
+  "nameservers":
+    - "192.168.1.200"
+  "searches": []
+  "options":
+    - "name": "ndots"
+      "value": "2"
+"image":
+  "pull_policy": "missing"
+  "repository": "keekar/headless-chrome"
+  "tag": "latest"
+"ports":
+  - "bind_mode": "published"
+    "container_port": 6080
+    "host_ips": []
+    "port_number": 6080
+    "protocol": "tcp"
+"portals":
+  - "name": "Web UI"
+    "path": "/"
+    "port": 6080
+    "scheme": "http"
+    "use_node_ip": true
+"restart_policy": "unless-stopped"
+"host_network": false
+"privileged": false
+# Keep the image's initial root user and writable root filesystem for signed
+# bootstrap updates; browser services drop to chrome. Do not enable privileged mode.
+# Forced-non-root/offline deployments must explicitly set CHROME_AUTO_UPDATE=0.
+# Do not mount /config — the image uses /tmp/chrome-profile and appdata ACLs block the chrome user.
+"storage": []

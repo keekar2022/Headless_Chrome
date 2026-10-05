@@ -1,0 +1,58 @@
+# Concept: Mukesh Kesharwani
+# Contact: mukesh.kesharwani@adobe.com
+name: Generate container SBOM
+
+on:
+  push:
+    branches: [main, master, production]
+  pull_request:
+    branches: [main, master, production]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - name: Build current container inventory
+        run: >-
+          docker build --pull --no-cache
+          --build-arg "VERSION=$(cat VERSION)"
+          --build-arg "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          --tag headless-chrome:sbom .
+      - name: Generate and validate CycloneDX 1.5 SBOM
+        # cdxgen 12.x fails for this image's evidence with CycloneDX 1.5.
+        # Keep the verified compatibility pin until upstream resolves that issue.
+        run: >-
+          npm exec --yes --package @cyclonedx/cdxgen@11.11.0 --
+          cdxgen -r -t docker headless-chrome:sbom
+          -o docs/sbom.json --spec-version 1.5 --json-pretty --evidence
+          --no-install-deps --validate
+      - name: Verify browser packages are inventoried
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          bom = json.loads(Path('docs/sbom.json').read_text())
+          assert bom['bomFormat'] == 'CycloneDX'
+          assert bom['specVersion'] == '1.5'
+          assert any(item.get('name') == 'chromium' for item in bom.get('components', []))
+          PY
+      - name: Upload validated SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: container-sbom
+          path: docs/sbom.json
+          if-no-files-found: error
+          retention-days: 30

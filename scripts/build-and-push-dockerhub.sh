@@ -17,7 +17,7 @@
 # Usage: ./scripts/build-and-push-dockerhub.sh [tag]
 #   With no argument: tag is v<VERSION> from VERSION file (e.g. v1.0.0), and 'latest' is also pushed.
 #   With argument: use that tag (e.g. v1.0.0). Numeric or v-prefixed tags also push as latest.
-# Builds use --no-cache by default so apt packages (Chromium, noVNC, etc.) are always
+# Builds use --pull and --no-cache by default so the base image and apt packages (Chromium, noVNC, etc.) are always
 # fetched fresh from Debian on each run. Bump VERSION and run this script to publish updates.
 #
 # Env:
@@ -218,8 +218,11 @@ if docker_hub_push_wanted; then
     echo "Will push tag: ${TAG}"
   fi
   if ! docker buildx build \
+    --pull \
     --platform "$PLATFORMS" \
     "${CACHE_ARGS[@]}" \
+    --build-arg "VERSION=${VERSION:-${TAG#v}}" \
+    --build-arg "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     "${TAGS_ARGS[@]}" \
     --push \
     --file Dockerfile \
@@ -240,8 +243,11 @@ else
     echo "Will load tag: ${FULL_IMAGE}"
   fi
   if ! docker buildx build \
+    --pull \
     --platform "$ONE_PLAT" \
     "${CACHE_ARGS[@]}" \
+    --build-arg "VERSION=${VERSION:-${TAG#v}}" \
+    --build-arg "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     "${TAGS_ARGS[@]}" \
     --load \
     --file Dockerfile \

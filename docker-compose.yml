@@ -6,15 +6,34 @@
 
 services:
   headless-chrome:
+    build:
+      context: .
+      pull: true
     image: keekar/headless-chrome:latest
     container_name: headless-chrome
     restart: unless-stopped
     shm_size: 2g
+    volumes:
+      - chrome-profile:/tmp/chrome-profile
+    env_file:
+      - deploy/defaults.env
+    dns:
+      - ${DNS_PRIMARY:-192.168.1.200}
+    dns_search:
+      - "."
+    dns_opt:
+      - ndots:2
+      - attempts:2
+      - timeout:2
     ports:
-      - "6080:6080"
+      - "127.0.0.1:6080:6080"
     environment:
       CHROME_MODE: desktop
+      CHROME_AUTO_UPDATE: "${CHROME_AUTO_UPDATE:-1}"
       NOVNC_PORT: "6080"
       NOVNC_LISTEN: "0.0.0.0"
       START_URL: about:blank
       # VNC_PASSWORD: change-me
+
+volumes:
+  chrome-profile:

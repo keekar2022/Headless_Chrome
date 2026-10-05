@@ -1,13 +1,20 @@
+<!-- Concept: Mukesh Kesharwani -->
+<!-- Contact: mukesh.kesharwani@adobe.com -->
+
 # Server deployment
 
 How to run Headless-Chrome on a **remote server** and open it from your laptop browser.
+
+## Automatic updates on restart
+
+Deploy the bootstrap-enabled image once. Subsequent starts/restarts check signed Debian packages before launching the browser as `chrome`; no image rebuild is needed just to update Chromium. Bootstrap requires root initially, a writable container filesystem, and outbound HTTPS/DNS access to official Debian repositories. Allow an eleven-minute startup health-check grace period. Updates fail closed; `CHROME_AUTO_UPDATE=0` is an explicit offline/non-root opt-out. See [runtime update requirements](RUNTIME_UPDATES.md).
 
 ## Your logs look healthy
 
 Messages like these are **warnings**, not failures:
 
 | Log line | Meaning |
-|----------|---------|
+| ---------- | --------- |
 | `_XSERVTransmkdir: euid != 0` | Fixed in v1.1.1+ (pre-creates `/tmp/.X11-unix`) |
 | `Openbox-Message: Unable to find ... menu` | Fixed in v1.1.1+ (minimal menu added) |
 | `dbus ... Failed to connect` | Normal in Docker; Chromium still runs |
@@ -42,9 +49,13 @@ docker run -d --restart unless-stopped \
   --name headless-chrome \
   -p 6080:6080 \
   --shm-size=2g \
+  --dns 192.168.1.200 \
+  --dns 192.168.1.1 \
   -e VNC_PASSWORD='choose-a-strong-password' \
   keekar/headless-chrome:latest
 ```
+
+See [`deploy/docker-run.example.sh`](../deploy/docker-run.example.sh), [`deploy/defaults.env`](../deploy/defaults.env), and [`docker-compose.yml`](../docker-compose.yml) for the same DNS defaults (bundled in image v1.1.7+ at `/opt/headless-chrome/deploy/`).
 
 Verify on the **server**:
 
